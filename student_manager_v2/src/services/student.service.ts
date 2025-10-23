@@ -12,8 +12,9 @@ export interface Student {
   promo: '3A' | '4A';
 }
 //2 creer le service student par cmd ng generate service services/student
+//@Injectable decorator pour marquer la classe comme un service injectable
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root' //on peut specifier le scope du service (ici le service est disponible dans toute l'application)
 })
 export class StudentService {
   
@@ -29,16 +30,22 @@ export class StudentService {
     { id: 5, name: 'Omar Ziani', promo: '4A', email: 'omar@edu.ma' }
   ]);
 
-  // Signal en lecture seule
+  // Signal en lecture seule pour exposer les étudiants aux components : c'est une bonne pratique pour éviter les modifications directes de l'état depuis l'extérieur du service
+  //cette propriété permet aux components d'accéder à la liste des étudiants sans pouvoir la modifier directement
+  // c est elle qui sera utilisée dans les methodes CRUD 
   readonly students = this.studentsSignal.asReadonly();
 
   // Compteur pour les IDs
   private nextId = 6;
 
-  // ==========================
-  // COMPUTED SIGNALS - Statistiques
-  // computed permet de créer des valeurs dérivées basées sur d'autres signaux (dans ce cas studentsSignal)
-  // ==========================
+// ================================
+// COMPUTED SIGNALS - Statistiques _~ get fonction mais computed() sait exactement de quoi il dépend
+// computed permet de créer des valeurs dérivées basées sur d'autres signaux (dans ce cas studentsSignal)
+// écoute automatiquement les signaux utilisés dans sa fonction.
+// se recalcule automatiquement dès qu’un de ces signaux change.
+// renvoie une valeur toujours à jour.
+// est readonly (tu ne peux pas le modifier avec .set() ou .update()).
+// ================================
   
   readonly totalStudents = computed(() => this.studentsSignal().length);
   
@@ -62,33 +69,39 @@ export class StudentService {
 
   /**
    * Ajoute un nouvel étudiant
+   * Omit<Student, 'id'> signifie que l'objet student passé en paramètre ne doit pas contenir la propriété id il est généré automatiquement
    */
   addStudent(student: Omit<Student, 'id'>): Student {
+    //a- créer un nouvel étudiant avec un ID unique apartir des données passées en paramètre
     const newStudent: Student = {
-      ...student,
-      id: this.nextId++
+      ...student, //spread operator pour copier les propriétes de student tel qu'elles sont passées en paramètre
+      id: this.nextId++ 
     };
+    //b- mettre à jour le signal studentsSignal en ajoutant le nouvel étudiant 
+    this.studentsSignal.update(students => [...students, newStudent]); //update est une methode des signaux pour modifier leur valeur
     
-    this.studentsSignal.update(students => [...students, newStudent]);
-    console.log('✅ Service: Étudiant ajouté:', newStudent );
-    return newStudent;
+    console.log('✅ Service: Étudiant ajouté:', newStudent ); 
+    return newStudent; //pourquoi on retourne le nouvel étudiant ? pour permettre au component qui a appelé cette méthode de récupérer l'ID généré
   }
 
   /**
-   * Met à jour un étudiant
+   * UPDATE PARTIELLE d'un étudiant: 
+   * Partiel signifie que l'objet updates peut contenuir une partie des propriétés de Student (name, email, promo) ou toutes les propriétés
+   * Omit est utilisé pour exclure la propriété id de l'objet updates car on ne doit pas pouvoir modifier l'ID d'un étudiant
    */
   updateStudent(id: number, updates: Partial<Omit<Student, 'id'>>): boolean {
+    //a-Trouver l'index de l'étudiant à mettre à jour par findIndex => retourne l'index de l'élément qui satisfait la condition OU -1 si non trouvé
     const index = this.studentsSignal().findIndex(s => s.id === id);
     
     if (index === -1) {
       console.warn(`⚠️ Service: Étudiant ID ${id} introuvable`);
       return false;
     }
-
+    //b- Mettre à jour l'étudiant en fusionnant les données existantes avec les mises à jour
     this.studentsSignal.update(students => {
-      const updated = [...students];
-      updated[index] = { ...updated[index], ...updates };
-      return updated;
+      const updated = [...students]; //creer une copie du tableau des étudiants car angular signaux nécessite une nouvelle référence pour détecter les changements 
+      updated[index] = { ...updated[index], ...updates };//fusionne les anciennes données de l’étudiant avec les nouvelles reçues.
+      return updated; //retourne le tableau des étudiants mis à jour
     });
 
     console.log(`✏️ Service: Étudiant ID ${id} mis à jour`);
@@ -127,10 +140,11 @@ export class StudentService {
    * Recherche des étudiants
    */
   searchStudents(query: string): Student[] {
+    // si la requete est vide ou contient uniquement des espaces; 
     if (!query.trim()) {
       return this.studentsSignal();
     }
-
+    //else effectuer la recherche insensible à la casse
     const lowerQuery = query.toLowerCase();
     return this.studentsSignal().filter(student =>
       student.name.toLowerCase().includes(lowerQuery) ||

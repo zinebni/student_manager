@@ -3,10 +3,12 @@
 // COMPOSANT MANAGER - Orchestrateur principal avec Service
 // ==========================
 
+// Importations Angular et services
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { Student, StudentService } from '../../services/student.service';
+import { Component, computed, inject, signal } from '@angular/core'; 
+import { Student, StudentService } from '../../services/student.service'; //model et service des étudiants
 
+//imports des composants enfants
 import { SearchBar } from '../search-bar/search-bar';
 import { Stats } from '../stats/stats';
 import { StudentList } from '../student-list/student-list';
@@ -109,8 +111,8 @@ export class StudentManagerComponent {
   // ==========================
   // ÉTAT LOCAL (UI uniquement)
   // ==========================
-  searchQuery = signal<string>('');
-  selectedStudentId = signal<number | null>(null);
+  searchQuery = signal<string>(''); //search query recuperer de l'enfant search_bar
+  selectedStudentId = signal<number | null>(null); //id de l'étudiant sélectionné pour le détail
 
   // ==========================
   // DONNÉES DU SERVICE
@@ -122,19 +124,20 @@ export class StudentManagerComponent {
   // COMPUTED SIGNALS
   // ==========================
   
-  /**
-   * Étudiants filtrés selon la recherche
+  /**Étudiants filtrés selon la recherche: envoiyée à l'enfant student_list
+   * initialiser un computed pour les étudiants filtrés en fonction de la requête de recherche
+   * il est recalculé automatiquement lorsque searchQuery ou students changent
    */
   filteredStudents = computed(() => {
-    const query = this.searchQuery();
+    const query = this.searchQuery();//recupere la valeur du signal searchQuery
     if (!query.trim()) {
       return this.students();
     }
-    return this.studentService.searchStudents(query);
+    return this.studentService.searchStudents(query);//utilise la methode de recherche du service
   });
 
   /**
-   * Étudiant sélectionné
+   * Étudiant sélectionné envoié a l'enfant student_detail valeur est recuperée depuis selectedStudentId envoyer par l'enfant student_list
    */
   selectedStudent = computed(() => {
     const id = this.selectedStudentId();
@@ -147,7 +150,9 @@ export class StudentManagerComponent {
   // ==========================
 
   /**
-   * Recherche modifiée
+   * Recherche modifiée : cette recupere le searchQuery émise par le composant enfant search_bar
+   * assigner la nouvelle requête de recherche au signal searchQuery
+   * la liste des étudiants filtrés se mettra à jour automatiquement via le computed filteredStudents
    */
   onSearchChanged(query: string): void {
     console.log('🔎 Manager: Recherche mise à jour:', query);
@@ -156,6 +161,7 @@ export class StudentManagerComponent {
 
   /**
    * Étudiant ajouté depuis le formulaire
+   * cette methode recupere le studentData (sans id) du composant enfant student_form
    */
   onStudentAdded(studentData: Omit<Student, 'id'>): void {
     const newStudent = this.studentService.addStudent(studentData);
@@ -163,7 +169,7 @@ export class StudentManagerComponent {
   }
 
   /**
-   * Étudiant sélectionné depuis la liste
+   * Étudiant sélectionné depuis la liste recuperer depuis l'enfant student_list
    */
   onStudentSelected(student: Student): void {
     console.log('👂 Manager: Étudiant sélectionné:', student.name);
