@@ -1,5 +1,6 @@
 //ce composant recupaire le new_student du foarmulaire "student-form" et l'emet au parent "student_manager"
 //pour l'ajouter a la liste des etudiants
+import { animate, style, transition, trigger } from '@angular/animations';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -7,36 +8,166 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-student-form',
   imports: [FormsModule],
   template: `
-    <div class="form-panel">
-      <h3>Ajouter un étudiant</h3>
-      <form (ngSubmit)="addStudent()">
+    <div class="form-panel" @formAnimation>
+      <div class="form-header">
+        <h3>➕ Ajouter un Étudiant</h3>
+        <p class="form-subtitle">Remplissez le formulaire ci-dessous</p>
+      </div>
+      <form (ngSubmit)="addStudent()" class="form-content">
         <div class="form-row">
-          <label>Nom</label>
-          <input [(ngModel)]="name" name="name" required />
+          <label for="name">Nom</label>
+          <input
+            id="name"
+            [(ngModel)]="name"
+            name="name"
+            placeholder="Entrez le nom complet"
+            required
+          />
         </div>
         <div class="form-row">
-          <label>Email</label>
-          <input [(ngModel)]="email" name="email" required type="email" />
+          <label for="email">Email</label>
+          <input
+            id="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="exemple@email.com"
+            required
+            type="email"
+          />
         </div>
         <div class="form-row">
-          <label>Promotion</label>
-          <select [(ngModel)]="promo" name="promo" required>
+          <label for="promo">Promotion</label>
+          <select
+            id="promo"
+            [(ngModel)]="promo"
+            name="promo"
+            required
+          >
             <option value="3A">3ème année</option>
             <option value="4A">4ème année</option>
           </select>
         </div>
-        <button type="submit">Ajouter</button>
+        <button type="submit" class="btn-submit">Ajouter l'étudiant</button>
       </form>
     </div>
   `,
   styles: `
-    .form-panel { background:#fafafa; border:1px solid #eee; border-radius:8px; padding:15px; }
-    .form-row { display:flex; align-items:center; margin-bottom:10px; gap:10px; }
-    label { width:110px; color:#555; }
-    input, select { flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; }
-    button { background:#2ecc71; color:#fff; border:none; border-radius:5px; padding:8px 12px; cursor:pointer; }
-    button:hover { background:#27ae60; }
-  `
+    .form-panel {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 1px solid rgba(46, 204, 113, 0.2);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .form-panel:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .form-header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(46, 204, 113, 0.3);
+    }
+
+    .form-header h3 {
+      color: #2c3e50;
+      font-size: 1.3rem;
+      margin: 0 0 6px 0;
+      font-weight: 700;
+    }
+
+    .form-subtitle {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .form-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      color: #2c3e50;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input, select {
+      padding: 12px 14px;
+      border: 2px solid #e0e6ed;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease-in-out;
+      background: #fff;
+    }
+
+    input::placeholder {
+      color: #bdc3c7;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2ecc71;
+      box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+      background: #fff;
+    }
+
+    input:hover, select:hover {
+      border-color: #2ecc71;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.3s ease-in-out;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .form-panel {
+        padding: 16px;
+      }
+      .form-row {
+        gap: 6px;
+      }
+    }
+  `,
+  animations: [
+    trigger('formAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('0.4s 0.1s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class StudentForm {
   @Output() studentAdded = new EventEmitter<any>();

@@ -4,16 +4,17 @@
 // ==========================
 
 // Importations Angular et services
+import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core'; 
+import { Component, computed, inject, signal } from '@angular/core';
 import { Student, StudentService } from '../../services/student.service'; //model et service des étudiants
 
 //imports des composants enfants
 import { SearchBar } from '../search-bar/search-bar';
 import { Stats } from '../stats/stats';
-import { StudentList } from '../student-list/student-list';
-import { StudentForm } from '../student-form/student-form';
 import { StudentDetail } from '../student-detail/student-detail';
+import { StudentForm } from '../student-form/student-form';
+import { StudentList } from '../student-list/student-list';
 
 
 @Component({
@@ -28,9 +29,11 @@ import { StudentDetail } from '../student-detail/student-detail';
     Stats
   ],
   template: `
-    <div class="student-manager-container">
-      <h2>Système de Gestion des Étudiants</h2>
-      
+    <div class="student-manager-container" @containerAnimation>
+      <div class="manager-header">
+        
+      </div>
+
       <!-- Barre de recherche -->
       <app-search-bar (searchChanged)="onSearchChanged($event)"></app-search-bar>
 
@@ -38,9 +41,9 @@ import { StudentDetail } from '../student-detail/student-detail';
         <div class="left-panel">
           <!-- Formulaire d'ajout -->
           <app-student-form (studentAdded)="onStudentAdded($event)"></app-student-form>
-          
+
           <!-- Liste des étudiants -->
-          <app-student-list 
+          <app-student-list
             [students]="filteredStudents()"
             [selectedStudentId]="selectedStudentId()"
             (studentSelected)="onStudentSelected($event)"
@@ -51,55 +54,97 @@ import { StudentDetail } from '../student-detail/student-detail';
         <div class="right-panel">
           <!-- Détails de l'étudiant sélectionné -->
           <app-student-detail [student]="selectedStudent()"></app-student-detail>
-          
+
           <!-- Statistiques -->
           <app-stats [stats]="stats()"></app-stats>
         </div>
       </div>
-      
+
       <p class="counter">
-        Total étudiants affichés : {{ filteredStudents().length }} / {{ students().length }}
+        📊 Total affichés : <span class="count-highlight">{{ filteredStudents().length }}</span> / <span class="count-total">{{ students().length }}</span>
       </p>
     </div>
   `,
   styles: [`
     .student-manager-container {
-      padding: 20px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background-color: #fff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      padding: 30px;
+      border: 1px solid rgba(52, 152, 219, 0.2);
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease-in-out;
     }
-    h2 { 
-      color: #2c3e50; 
-      border-bottom: 2px solid #3498db; 
-      padding-bottom: 10px; 
-      margin-bottom: 20px; 
-      text-align: center; 
+
+    .student-manager-container:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
     }
+
+    .manager-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid rgba(52, 152, 219, 0.3);
+    }
+
+    
+
     .main-content {
       display: flex;
-      gap: 20px;
-      margin-top: 20px;
+      gap: 25px;
+      margin-top: 25px;
     }
+
     .left-panel {
       flex: 2;
     }
+
     .right-panel {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
+
     .counter {
       text-align: right;
-      font-weight: bold;
-      color: #555;
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px solid #eee;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 2px solid rgba(52, 152, 219, 0.2);
+      font-size: 0.95rem;
+      transition: all 0.3s ease-in-out;
     }
-  `]
+
+    .count-highlight {
+      color: #3498db;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .count-total {
+      color: #7f8c8d;
+      font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .left-panel, .right-panel {
+        flex: 1;
+      }
+    }
+  `],
+  animations: [
+    trigger('containerAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('0.5s 0.2s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class StudentManagerComponent {
   
